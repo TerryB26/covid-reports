@@ -60,8 +60,6 @@ const DashboardView = () => {
 
       const aggregatedData = aggregateMonthlyData(CovidStats);
 
-
-
       setMonthlyData(aggregatedData);
       setTotalConfirmed(confirmed);
       setTotalDeaths(deaths);

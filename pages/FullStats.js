@@ -3,6 +3,8 @@ import PageHeader from "@/components/General/PageHeader";
 import { Tabs, Tab, Box, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Users from '@/components/Users/Users';
+import Fulltable from '@/components/FullStatistics/Fulltable';
+import LineGraph from '@/components/Statistics/LineGraph';
 
 const Root = styled('div')(({ theme }) => ({
   padding: "20px",
@@ -42,9 +44,9 @@ const TabPanel = styled('div')(({ theme }) => ({
 }));
 
 const tabContents = [
-  { label: "Tab 1", title: "Content for Tab 1", content: <Users /> },
-  { label: "Tab 2", title: "Content for Tab 2", content: "Here is some content for the second tab." },
-  { label: "Tab 3", title: "Content for Tab 3", content: "Here is some content for the third tab." },
+  { label: "Full Graph", content: <LineGraph /> },
+  { label: "Full Table", content: <Fulltable /> },
+
 ];
 
 const FullStats = () => {
