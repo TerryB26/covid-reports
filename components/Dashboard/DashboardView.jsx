@@ -1,34 +1,18 @@
 import React, { useState,useEffect } from 'react';
-import { IconButton, Box, Grid, Dialog, DialogTitle, DialogContent, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Button, TableSortLabel, TablePagination} from "@mui/material";
+import {Box, Grid,Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Button, TableSortLabel, TablePagination} from "@mui/material";
 import PageHeader from "@/components/General/PageHeader";
 import InfoCard from "@/components/General/InfoCard";
-import { MdOutlineAdsClick, MdNavigateBefore, MdNavigateNext, MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
+import { MdOutlineAdsClick } from "react-icons/md";
 import BarGraph from '@/components/Statistics/BarGraph';
 import PieChart from '@/components/Statistics/PieChart';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import DialogForm from '@/components/General/DialogForm';
-import { LuCloudDownload } from "react-icons/lu";
-import axios from 'axios';
-import { FaRegFileWord } from "react-icons/fa6";
-import { FaRegFilePdf } from "react-icons/fa";
-import { fetchData } from '@/library/apiClient';
-import { queryKeys } from '@/library/queries';
+import { CovidStats } from '@/library/DummyDB';
 
 const DashboardView = () => {
 
     const dummyData = [
         { user: 'John Doe', age: 28, transactions: 5, totalAmount: 1500 },
-        { user: 'Jane Smith', age: 34, transactions: 8, totalAmount: 2300 },
-        { user: 'Alice Johnson', age: 45, transactions: 3, totalAmount: 1200 },
-        { user: 'Bob Brown', age: 23, transactions: 7, totalAmount: 1900 },
-        { user: 'John Doe', age: 28, transactions: 5, totalAmount: 1500 },
-        { user: 'Jane Smith', age: 34, transactions: 8, totalAmount: 2300 },
-        { user: 'Alice Johnson', age: 45, transactions: 3, totalAmount: 1200 },
-        { user: 'Bob Brown', age: 23, transactions: 7, totalAmount: 1900 },
-        { user: 'John Doe', age: 28, transactions: 5, totalAmount: 1500 },
-        { user: 'Jane Smith', age: 34, transactions: 8, totalAmount: 2300 },
-        { user: 'Alice Johnson', age: 45, transactions: 3, totalAmount: 1200 },
-        { user: 'Bob Brown', age: 23, transactions: 7, totalAmount: 1900 },
       ];
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,11 +22,30 @@ const DashboardView = () => {
     const [rowsPerPage, setRowsPerPage] = useState(5); 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogTitle, setDialogTitle] = useState('');  
+    const [dialogContent, setDialogContent] = useState('');
     
     const handleIconClick = (title) => {
-        setDialogTitle(title);
-        setDialogOpen(true);
-      };
+      let dialogContent = '';
+      switch (title) {
+        case 'Confirmed Cases':
+          dialogContent = `Since the [lowest date] to the [highest date], we have recorded a total of 15  ${title}`;
+          break;
+        case 'Active Cases':
+          dialogContent = `Since the [lowest date] to the [highest date], we have confirmed a total of 15  ${title}`;
+          break;
+        case 'Total Recovered':
+          dialogContent = `Since the [lowest date] to the [highest date], we have recorded a total of 15  ${title} patients`;
+          break;
+        case 'Total Deaths':
+          dialogContent = `Since the [lowest date] to the [highest date], we recorded at least 15  ${title}`;
+          break;
+        default:
+          dialogContent = 'Details not available';
+      }
+      setDialogTitle(title);
+      setDialogContent(dialogContent);
+      setDialogOpen(true);
+    };
     
       const handleClose = () => {
         setDialogOpen(false);
@@ -71,15 +74,15 @@ const DashboardView = () => {
         setPage(0);
       };
     
-      const filteredData = dummyData.filter((row) =>
-        row.user.toLowerCase().includes(searchTerm.toLowerCase())
+      const filteredData = CovidStats.filter((row) =>
+        row["Total Confirmed Cases"].toString().includes(searchTerm.toLowerCase())
       );
-    
+      
       const sortedData = filteredData.sort((a, b) => {
-        if (orderBy === 'user') {
+        if (orderBy === 'Date') {
           return order === 'asc'
-            ? a.user.localeCompare(b.user)
-            : b.user.localeCompare(a.user);
+            ? new Date(a.Date) - new Date(b.Date)
+            : new Date(b.Date) - new Date(a.Date);
         } else {
           return order === 'asc'
             ? a[orderBy] - b[orderBy]
@@ -89,48 +92,6 @@ const DashboardView = () => {
 
       const paginatedData = sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-      const handleDownload = async (UserData, Type) => {
-        try {
-          const url = Type === "pdf" ? "/api/GenPDFReport" : "/api/GenWordReport";
-          const response = await axios.post(
-            url,
-            { userData: UserData, Type: Type }, 
-            { responseType: "blob" } 
-          );
-      
-          // Create a blob from the response data
-          const blob = new Blob([response.data], {
-            type:
-              Type === "pdf"
-                ? "application/pdf"
-                : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          });
-      
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = downloadUrl;
-          link.setAttribute("download", `${UserData.user}_report.${Type}`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-      
-          // Clean up
-          window.URL.revokeObjectURL(downloadUrl);
-        } catch (error) {
-          console.error("Error downloading file:", error);
-        }
-      };
-
-      useEffect(() => {
-        const fetchUsers = async () => {
-          try {
-            const data = await fetchData(queryKeys.GET_USERS);
-          } catch (error) {
-            console.error('Failed to fetch users:', error);
-          }
-        };
-        fetchUsers();
-      }, []);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -145,9 +106,9 @@ const DashboardView = () => {
                 <>
                   <MdOutlineAdsClick
                     style={{ marginRight: "8px", verticalAlign: 'middle', position: 'relative', top: '-2px', cursor: 'pointer' }}
-                    onClick={() => handleIconClick('Card 1')}
+                    onClick={() => handleIconClick('Confirmed Cases')}
                   />
-                  1
+                  Confirmed Cases
                 </>
               }
               innerText="10"
@@ -159,9 +120,9 @@ const DashboardView = () => {
                 <>
                   <MdOutlineAdsClick
                     style={{ marginRight: "8px", verticalAlign: 'middle', position: 'relative', top: '-2px', cursor: 'pointer' }}
-                    onClick={() => handleIconClick('Card 2')}
+                    onClick={() => handleIconClick('Active Cases')}
                   />
-                  2
+                  Active Cases
                 </>
               }
               innerText="20"
@@ -173,9 +134,9 @@ const DashboardView = () => {
                 <>
                   <MdOutlineAdsClick
                     style={{ marginRight: "8px", verticalAlign: 'middle', position: 'relative', top: '-2px', cursor: 'pointer' }}
-                    onClick={() => handleIconClick('Card 3')}
+                    onClick={() => handleIconClick('Total Recovered')}
                   />
-                  3
+                  Total Recovered
                 </>
               }
               innerText="30"
@@ -187,9 +148,9 @@ const DashboardView = () => {
                 <>
                   <MdOutlineAdsClick
                     style={{ marginRight: "8px", verticalAlign: 'middle', position: 'relative', top: '-2px', cursor: 'pointer' }}
-                    onClick={() => handleIconClick('Card 4')}
+                    onClick={() => handleIconClick('Total Deaths')}
                   />
-                  4
+                  Total Deaths
                 </>
               }
               innerText="40"
@@ -311,7 +272,6 @@ const DashboardView = () => {
                               Total Amount ($)
                             </TableSortLabel>
                           </TableCell>
-                          <TableCell align="right">Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -330,11 +290,6 @@ const DashboardView = () => {
                             <TableCell align="right">{row.age}</TableCell>
                             <TableCell align="right">{row.transactions}</TableCell>
                             <TableCell align="right">{row.totalAmount}</TableCell>
-                            <TableCell align="right">
-                                <IconButton onClick={() => handleDownload(row,"DOCX")}>
-                                <FaRegFileWord />
-                                </IconButton>
-                            </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -357,9 +312,10 @@ const DashboardView = () => {
 
       <DialogForm
         title={dialogTitle}
-        content=""
+        content={dialogContent}
         open={dialogOpen}
         onClose={handleClose}
+        width='sm'
       />
 
     </div>

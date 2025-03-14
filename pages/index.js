@@ -15,7 +15,7 @@ export default function Home() {
         height: "100vh"
       }}
     >
-      <PageHeader routeName="React Template" />
+      <PageHeader routeName="Covid-19 Statistics" />
 
       <Box
         sx={{
@@ -25,49 +25,6 @@ export default function Home() {
           mt: 2
         }}
       >
-        <Link href="/Login" passHref>
-          <Button
-            variant="outlined"
-            sx={{
-              mx: 1,
-              color: "#1976D2",
-              borderColor: "#1976D2",
-              '&:hover': {
-                backgroundColor: "#1976D2",
-                color: "white",
-                borderColor: "#1976D2",
-                '& .MuiButton-endIcon': {
-                  color: "white"
-                }
-              }
-            }}
-            endIcon={<CiLogin />}
-          >
-            Sign In
-          </Button>
-        </Link>
-
-        <Link href="/Register" passHref>
-          <Button
-            variant="outlined"
-            sx={{
-              mx: 1,
-              color: "#1976D2",
-              borderColor: "#1976D2",
-              '&:hover': {
-                backgroundColor: "#1976D2",
-                color: "white",
-                borderColor: "#1976D2",
-                '& .MuiButton-endIcon': {
-                  color: "white"
-                }
-              }
-            }}
-            endIcon={<MdOutlineDashboardCustomize />}
-          >
-            Register
-          </Button>
-        </Link>
 
         <Link href="/Dashboard" passHref>
           <Button

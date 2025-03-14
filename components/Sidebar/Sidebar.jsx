@@ -51,7 +51,6 @@ const Sidebar = () => {
             {[
               { text: 'Dashboard', icon: <MdHome color="rgb(128, 0, 128)" />, path: '/Dashboard' },
               { text: 'Library', icon: <IoLibraryOutline color="rgb(128, 0, 128)" />, path: '/Library' },
-              { text: 'Profile', icon: <IoPersonCircleOutline color="rgb(128, 0, 128)" />, path: '/Profile' },
             ].map((item, index) => (
               <ListItem
                 button={true}
