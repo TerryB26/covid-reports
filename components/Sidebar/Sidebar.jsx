@@ -50,7 +50,7 @@ const Sidebar = () => {
           <List sx={{ mt: 20 }}>
             {[
               { text: 'Dashboard', icon: <MdHome color="rgb(128, 0, 128)" />, path: '/Dashboard' },
-              { text: 'Library', icon: <IoLibraryOutline color="rgb(128, 0, 128)" />, path: '/Library' },
+              { text: 'Library', icon: <IoLibraryOutline color="rgb(128, 0, 128)" />, path: '/FullStats' },
             ].map((item, index) => (
               <ListItem
                 button={true}

@@ -11,33 +11,80 @@ import { CovidStats } from '@/library/DummyDB';
 
 const DashboardView = () => {
 
-    const dummyData = [
-        { user: 'John Doe', age: 28, transactions: 5, totalAmount: 1500 },
-      ];
+  const aggregateMonthlyData = (data) => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthlyData = {};
+    data.forEach(entry => {
+      const [year, month] = entry.Date.split('/').slice(0, 2);
+      const key = monthNames[parseInt(month) - 1];
+      if (!monthlyData[key]) {
+        monthlyData[key] = { cases: 0, deaths: 0 };
+      }
+      monthlyData[key].cases += parseInt(entry['Total Confirmed Cases']) || 0;
+      monthlyData[key].deaths += parseInt(entry['Total Deaths']) || 0;
+    });
+    return Object.entries(monthlyData).map(([key, value]) => ({
+      month: key,
+      cases: value.cases,
+      deaths: value.deaths
+    }));
+  };
 
     const [searchTerm, setSearchTerm] = useState('');
     const [order, setOrder] = useState('asc');
-    const [orderBy, setOrderBy] = useState('user');
+    const [orderBy, setOrderBy] = useState('Date');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5); 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogTitle, setDialogTitle] = useState('');  
     const [dialogContent, setDialogContent] = useState('');
+
+    const [totalConfirmed, setTotalConfirmed] = useState(0);
+    const [totalDeaths, setTotalDeaths] = useState(0);
+    const [totalRecovered, setTotalRecovered] = useState(0);
+    const [totalActiveCases, setTotalActiveCases] = useState(0);
+    const [lowestDate, setLowestDate] = useState('');
+    const [highestDate, setHighestDate] = useState('');
+    const [monthlyData, setMonthlyData] = useState([]);
+    
+    useEffect(() => {
+      const toInt = (value) => (isNaN(parseInt(value)) ? 0 : parseInt(value));
+      const confirmed = CovidStats.reduce((sum, entry) => sum + toInt(entry["Total Confirmed Cases"]), 0);
+      const deaths = CovidStats.reduce((sum, entry) => sum + toInt(entry["Total Deaths"]), 0);
+      const recovered = CovidStats.reduce((sum, entry) => sum + toInt(entry["Total Recovered"]), 0);
+      const activeCases = CovidStats.reduce((sum, entry) => sum + toInt(entry["Active Cases"]), 0);
+    
+      const dates = CovidStats.map(entry => new Date(entry.Date.replace(/\//g, '-')));
+      const minDate = new Date(Math.min(...dates));
+      const maxDate = new Date(Math.max(...dates));
+
+      const aggregatedData = aggregateMonthlyData(CovidStats);
+
+
+
+      setMonthlyData(aggregatedData);
+      setTotalConfirmed(confirmed);
+      setTotalDeaths(deaths);
+      setTotalRecovered(recovered);
+      setTotalActiveCases(activeCases);
+      setLowestDate(minDate.toISOString().split('T')[0]);
+      setHighestDate(maxDate.toISOString().split('T')[0]);
+    }, []);
     
     const handleIconClick = (title) => {
       let dialogContent = '';
       switch (title) {
         case 'Confirmed Cases':
-          dialogContent = `Since the [lowest date] to the [highest date], we have recorded a total of 15  ${title}`;
+          dialogContent = `Since <b>${lowestDate}</b> till <b>${highestDate}</b>, we have recorded a total of <b>${totalConfirmed}</b> <b>${title}</b>`;
           break;
         case 'Active Cases':
-          dialogContent = `Since the [lowest date] to the [highest date], we have confirmed a total of 15  ${title}`;
+          dialogContent = `Since <b>${lowestDate}</b> till <b>${highestDate}</b>, we have confirmed a total of <b>${totalActiveCases}</b> <b>${title}</b>`;
           break;
         case 'Total Recovered':
-          dialogContent = `Since the [lowest date] to the [highest date], we have recorded a total of 15  ${title} patients`;
+          dialogContent = `Since <b>${lowestDate}</b> till <b>${highestDate}</b>, we have recorded a total of <b>${totalRecovered}</b> <b>${title}</b> patients`;
           break;
         case 'Total Deaths':
-          dialogContent = `Since the [lowest date] to the [highest date], we recorded at least 15  ${title}`;
+          dialogContent = `Since <b>${lowestDate}</b> till <b>${highestDate}</b>, we recorded at least <b>${totalDeaths}</b> <b>${title}</b>`;
           break;
         default:
           dialogContent = 'Details not available';
@@ -75,7 +122,12 @@ const DashboardView = () => {
       };
     
       const filteredData = CovidStats.filter((row) =>
-        row["Total Confirmed Cases"].toString().includes(searchTerm.toLowerCase())
+        row["Total Confirmed Cases"].toString().includes(searchTerm.toLowerCase()) ||
+        row["Total Deaths"].toString().includes(searchTerm.toLowerCase()) ||
+        row["Total Recovered"].toString().includes(searchTerm.toLowerCase()) ||
+        row["Active Cases"].toString().includes(searchTerm.toLowerCase()) ||
+        row["Daily Confirmed Cases"].toString().includes(searchTerm.toLowerCase()) ||
+        row["Daily  deaths"].toString().includes(searchTerm.toLowerCase()) 
       );
       
       const sortedData = filteredData.sort((a, b) => {
@@ -111,7 +163,7 @@ const DashboardView = () => {
                   Confirmed Cases
                 </>
               }
-              innerText="10"
+              innerText={totalConfirmed}
             />
           </Grid>
           <Grid item xs={12} md={3} key="Total2">
@@ -125,7 +177,7 @@ const DashboardView = () => {
                   Active Cases
                 </>
               }
-              innerText="20"
+              innerText={totalActiveCases}
             />
           </Grid>
           <Grid item xs={12} md={3} key="Total3">
@@ -139,7 +191,7 @@ const DashboardView = () => {
                   Total Recovered
                 </>
               }
-              innerText="30"
+              innerText={totalRecovered}
             />
           </Grid>
           <Grid item xs={12} md={3} key="Total4">
@@ -153,38 +205,38 @@ const DashboardView = () => {
                   Total Deaths
                 </>
               }
-              innerText="40"
+              innerText={totalDeaths}
             />
           </Grid>
 
         {/* Charts */}
         <Grid item xs={12} md={6}>
           <InfoCard
-            header="Chart 1"
+            header="Cases & Deaths"
             innerText={
-              <BarGraph />
+              <BarGraph titles={["Recorded Cases" , "Recorded Deaths"]} MonthlyData={monthlyData}/>
             }
           />
         </Grid>
 
         <Grid item xs={12} md={6}>
           <InfoCard
-            header="Chart 2"
+            header="Cases, Recoveries & Deaths"
             innerText={
-                <PieChart />
+                <PieChart titles={["Confimed Cases" , "Recorded Deaths" , "Recorded Recoveries"]} PieData={[totalConfirmed,totalDeaths,totalRecovered]}/>
               }
           />
         </Grid>
 
         <Grid item xs={12} md={12}>
             <InfoCard
-              header="Table Info"
+              header="Summarized Data"
               innerText={
                 <Box p={2}>
                   <Box p={2} display="flex" alignItems="center">
                     <TextField
                       label="Search"
-                      placeholder='Search by User Name'
+                      placeholder='Search by Confirmed Cases, Deaths & Recovered'
                       variant="outlined"
                       value={searchTerm}
                       onChange={handleSearchChange}
@@ -236,62 +288,72 @@ const DashboardView = () => {
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
-                          <TableCell>
-                            <TableSortLabel
-                              active={orderBy === 'user'}
-                              direction={orderBy === 'user' ? order : 'asc'}
-                              onClick={(event) => handleRequestSort(event, 'user')}
-                            >
-                              User
-                            </TableSortLabel>
-                          </TableCell>
-                          <TableCell align="right">
-                            <TableSortLabel
-                              active={orderBy === 'age'}
-                              direction={orderBy === 'age' ? order : 'asc'}
-                              onClick={(event) => handleRequestSort(event, 'age')}
-                            >
-                              Age
-                            </TableSortLabel>
-                          </TableCell>
-                          <TableCell align="right">
-                            <TableSortLabel
-                              active={orderBy === 'transactions'}
-                              direction={orderBy === 'transactions' ? order : 'asc'}
-                              onClick={(event) => handleRequestSort(event, 'transactions')}
-                            >
-                              Transactions
-                            </TableSortLabel>
-                          </TableCell>
-                          <TableCell align="right">
-                            <TableSortLabel
-                              active={orderBy === 'totalAmount'}
-                              direction={orderBy === 'totalAmount' ? order : 'asc'}
-                              onClick={(event) => handleRequestSort(event, 'totalAmount')}
-                            >
-                              Total Amount ($)
-                            </TableSortLabel>
-                          </TableCell>
+                        <TableCell>
+                          <TableSortLabel
+                            active={orderBy === 'Date'}
+                            direction={orderBy === 'Date' ? order : 'asc'}
+                            onClick={(event) => handleRequestSort(event, 'Date')}
+                          >
+                            Date
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'Total Confirmed Cases'}
+                            direction={orderBy === 'Total Confirmed Cases' ? order : 'asc'}
+                            onClick={(event) => handleRequestSort(event, 'Total Confirmed Cases')}
+                          >
+                            Total Confirmed Cases
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'Total Recovered'}
+                            direction={orderBy === 'Total Recovered' ? order : 'asc'}
+                            onClick={(event) => handleRequestSort(event, 'Total Recovered')}
+                          >
+                            Total Recovered
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'Active Cases'}
+                            direction={orderBy === 'Active Cases' ? order : 'asc'}
+                            onClick={(event) => handleRequestSort(event, 'Active Cases')}
+                          >
+                            Active Cases
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">
+                          <TableSortLabel
+                            active={orderBy === 'Total Deaths'}
+                            direction={orderBy === 'Total Deaths' ? order : 'asc'}
+                            onClick={(event) => handleRequestSort(event, 'Total Deaths')}
+                          >
+                            Total Deaths
+                          </TableSortLabel>
+                        </TableCell>                        
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {paginatedData.map((row, index) => (
-                            <TableRow
-                            key={index}
-                            sx={{
-                                '&:hover': {
-                                backgroundColor: '#E4F2FF',
-                                },
-                            }}
-                            >
-                            <TableCell component="th" scope="row">
-                                {row.user}
-                            </TableCell>
-                            <TableCell align="right">{row.age}</TableCell>
-                            <TableCell align="right">{row.transactions}</TableCell>
-                            <TableCell align="right">{row.totalAmount}</TableCell>
-                            </TableRow>
-                        ))}
+                      {paginatedData.map((row, index) => (
+                        <TableRow
+                          key={index}
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: '#E4F2FF',
+                            },
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {row.Date}
+                          </TableCell>
+                          <TableCell align="right">{row["Total Confirmed Cases"]}</TableCell>
+                          <TableCell align="right">{row["Total Recovered"]}</TableCell>
+                          <TableCell align="right">{row["Active Cases"]}</TableCell>
+                          <TableCell align="right">{row["Total Deaths"]}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                     </Table>
                   </TableContainer>

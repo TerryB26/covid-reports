@@ -47,7 +47,7 @@ const tabContents = [
   { label: "Tab 3", title: "Content for Tab 3", content: "Here is some content for the third tab." },
 ];
 
-const Library = () => {
+const FullStats = () => {
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
@@ -61,7 +61,7 @@ const Library = () => {
         <Tabs
           value={value}
           onChange={handleChange}
-          aria-label="library tabs"
+          aria-label="FullStats tabs"
           TabIndicatorProps={{ style: { display: 'none' } }}
         >
           {tabContents.map((tab, index) => (
@@ -81,4 +81,4 @@ const Library = () => {
   );
 };
 
-export default Library;
+export default FullStats;

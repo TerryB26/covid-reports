@@ -21,7 +21,7 @@ const DialogForm = ({ title, content, open, onClose, width = "md" }) => {
       </DialogTitle>
       <Divider />
       <DialogContent>
-        {content}
+      <div dangerouslySetInnerHTML={{ __html: content }} />
       </DialogContent>
     </Dialog>
   );

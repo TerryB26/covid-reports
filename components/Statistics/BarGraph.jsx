@@ -21,27 +21,25 @@ ChartJS.register(
   Legend
 );
 
-const BarGraph = () => {
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+const BarGraph = ({titles, MonthlyData}) => {
+
+  const months = MonthlyData.map(data => data.month);
 
   const data = {
     labels: months,
     datasets: [
       {
-        label: "Sales 2024",
-        data: [65, 59, 80, 81, 56, 55, 40, 45, 60, 70, 75, 90],
+        label: titles[0],
+        data: MonthlyData.map(data => data.cases),
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 1,
       },
       {
-        label: "Sales 2025",
-        data: [75, 69, 90, 91, 66, 65, 50, 55, 70, 80, 85, 100],
-        backgroundColor: "rgba(153, 102, 255, 0.2)",
-        borderColor: "rgba(153, 102, 255, 1)",
+        label: titles[1],
+        data: MonthlyData.map(data => data.deaths),
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        borderColor: "rgba(255, 99, 132, 1)",
         borderWidth: 1,
       },
     ],
@@ -69,10 +67,7 @@ const BarGraph = () => {
       legend: {
         position: "top",
       },
-      title: {
-        display: true,
-        text: "Monthly Sales Data",
-      },
+      
     },
   };
 
