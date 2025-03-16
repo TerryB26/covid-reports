@@ -22,17 +22,42 @@ ChartJS.register(
   Legend
 );
 
+// Custom plugin to add background text
+const backgroundTextPlugin = {
+  id: 'backgroundText',
+  beforeDraw: (chart) => {
+    const ctx = chart.ctx;
+    const width = chart.width;
+    const height = chart.height;
+    ctx.save();
+    ctx.font = 'bold 50px Arial';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Covid-19 Statistics', width / 2, height / 2);
+    ctx.restore();
+  }
+};
+
 const LineGraph = () => {
   const dates = CovidStats.map(stat => {
     const date = new Date(stat.Date);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   });
-  const totalConfirmedCases = CovidStats.map(stat => stat["Total Confirmed Cases"]);
-  const dailyConfirmedCases = CovidStats.map(stat => stat["Daily Confirmed Cases"]);
-  const totalDeaths = CovidStats.map(stat => stat["Total Deaths"]);
-  const totalRecovered = CovidStats.map(stat => stat["Total Recovered"]);
-  const activeCases = CovidStats.map(stat => stat["Active Cases"]);
-  const dailyDeaths = CovidStats.map(stat => stat["Daily  deaths"]);
+
+  const parseValue = (value) => {
+    if (typeof value === 'string') {
+      return parseInt(value.replace(/\s/g, ''));
+    }
+    return value;
+  };
+
+  const totalConfirmedCases = CovidStats.map(stat => parseValue(stat["Total Confirmed Cases"]));
+  const dailyConfirmedCases = CovidStats.map(stat => parseValue(stat["Daily Confirmed Cases"]));
+  const totalDeaths = CovidStats.map(stat => parseValue(stat["Total Deaths"]));
+  const totalRecovered = CovidStats.map(stat => parseValue(stat["Total Recovered"]));
+  const activeCases = CovidStats.map(stat => parseValue(stat["Active Cases"]));
+  const dailyDeaths = CovidStats.map(stat => parseValue(stat["Daily deaths"]));
 
   const data = {
     labels: dates,
@@ -88,7 +113,7 @@ const LineGraph = () => {
     scales: {
       y: {
         ticks: {
-          stepSize: 1, 
+          stepSize: 1, // Adjust this value to control the number of ticks
         },
       },
     },
@@ -100,12 +125,13 @@ const LineGraph = () => {
         display: true,
         text: "Covid-19 Statistics",
       },
+      backgroundText: {} // Enable the custom plugin
     },
   };
 
   return (
     <div style={{ width: "100%", height: "800px" }}>
-      <Line data={data} options={options} />
+      <Line data={data} options={options} plugins={[backgroundTextPlugin]} />
     </div>
   );
 };
