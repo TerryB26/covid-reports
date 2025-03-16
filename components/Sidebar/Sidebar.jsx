@@ -45,7 +45,7 @@ const Sidebar = () => {
           }}
         >
           <Box p={2} textAlign="center" mt={0}>
-            <img src="/images/Earth.png" alt="System Logo" style={{ width: '80%' }} />
+            <img src="/images/covid.png" alt="System Logo" style={{ width: '80%' }} />
           </Box>
           <List sx={{ mt: 20 }}>
             {[

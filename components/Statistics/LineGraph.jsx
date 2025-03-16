@@ -88,7 +88,7 @@ const LineGraph = () => {
     scales: {
       y: {
         ticks: {
-          stepSize: 1, // Adjust this value to control the number of ticks
+          stepSize: 1, 
         },
       },
     },
